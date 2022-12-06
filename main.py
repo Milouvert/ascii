@@ -4,12 +4,6 @@ import argparse
 import time
 
 chars = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'. "
-charsList = list(chars)
-
-inFile = "Image.png"
-outTxt = "Output.txt"
-scale = 1 
-verbose = False
 
 def main(args):
 
@@ -21,29 +15,35 @@ def main(args):
     start_time = time.time()
 
     im = Image.open(inFile)
+
+    # verbose
+    if verbose:
+        print(f"Opening '{inFile}' ({im.format}, {im.mode})")
+
     o_width, o_height = im.size
     im = im.resize((int(o_width * scale), int(o_height * scale)), Image.Resampling.NEAREST)
     width, height = im.size
 
     # verbose
     if verbose:
-        print(f"Opening '{inFile}' ({im.format}, {im.mode})")
         if scale == 1:
             print(f"{width}x{height} ({width*height} px)")
         else:
             print(f"{o_width}x{o_height} ({o_width*o_height} px) => {width}x{height} ({width*height} px)")
 
     txt = open(outTxt, "w")
+    
+    if im.mode not in ["RGB", "RGBA"]:
+        im = im.convert(mode="RGBA")
 
     pixs = im.load()
     for y in range(height):
         for x in range(width):
+            
             cols = pixs[x, y]
             r, g, b, *a = cols
             a = a[0] if a else 255
             d = int(r/3 + g/3 + b/3)
-
-            pixs[x, y] = (d, d, d, a)
 
             if a == 0:
                 d = 255
@@ -83,7 +83,6 @@ parser.add_argument('source_file', type=open, help='Source image file')
 parser.add_argument('-s', '--scale', type=float, help='Factor at which to scale the output image', default=1)
 parser.add_argument('-v', '--verbose', action=argparse.BooleanOptionalAction, help='Displays useful information about the conversion process')
 parser.add_argument('dest_file', type=argparse.FileType('w'), help='Destination text file')
-
 
 if __name__ == '__main__':
     args = parser.parse_args()
