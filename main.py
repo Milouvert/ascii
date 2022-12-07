@@ -7,21 +7,35 @@ chars = "$@B%8&WM#*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,\"^`'. 
 
 def main(args):
 
+    # arguments
     inFile = args.source_file.name
     outTxt = args.dest_file.name
     scale = args.scale
+    a_width = args.width
+    a_height = args.height
+    a_scale_width = args.scale_width
+    a_scale_height = args.scale_height
     verbose = args.verbose
 
+    # timer start (verbose)
     start_time = time.time()
-
-    im = Image.open(inFile)
+    
+    try:
+        im = Image.open(inFile)
+    except:
+        print("An exception occured while opening the file")
+        exit(1)
 
     # verbose
     if verbose:
         print(f"Opening '{inFile}' ({im.format}, {im.mode})")
 
     o_width, o_height = im.size
-    im = im.resize((int(o_width * scale), int(o_height * scale)), Image.Resampling.NEAREST)
+
+    x_scale = a_width / o_width if a_width else a_scale_width if a_scale_width else scale
+    y_scale = a_height / o_height if a_height else a_scale_height if a_scale_height else scale
+
+    im = im.resize((int(o_width * x_scale), int(o_height * y_scale)), Image.Resampling.NEAREST)
     width, height = im.size
 
     # verbose
@@ -61,6 +75,11 @@ def main(args):
 
         txt.write("\n")
 
+    if verbose:
+        current_time = time.time()
+        time_diff = current_time - start_time
+        print(f"\33[2K\rOperation complete! ({time_diff:.2f}s)")
+
 def getLoadingChar(n):
     n = int(n)
     if n % 4 == 0:
@@ -81,6 +100,10 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument('source_file', type=open, help='Source image file')
 parser.add_argument('-s', '--scale', type=float, help='Factor at which to scale the output image', default=1)
+parser.add_argument('-sw', '--scale-width', type=float, help='Factor at which to scale the width of the output image', required=False)
+parser.add_argument('-sh', '--scale-height', type=float, help='Factor at which to scale the height of the output image', required=False)
+parser.add_argument('-w', '--width', type=int, help='Set a specific output width (px)', required=False)
+parser.add_argument('--height', type=int, help='Set a specific output height (px)', required=False)
 parser.add_argument('-v', '--verbose', action=argparse.BooleanOptionalAction, help='Displays useful information about the conversion process')
 parser.add_argument('dest_file', type=argparse.FileType('w'), help='Destination text file')
 

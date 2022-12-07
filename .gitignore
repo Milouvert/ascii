@@ -3,3 +3,4 @@
 *.jpg
 out/
 ascii
+__pycache__/
